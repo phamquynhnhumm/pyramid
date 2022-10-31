@@ -1,0 +1,142 @@
+{% extends "layout.jinja2" %}
+
+{% block content %}
+
+    <div class="content">
+        <div id="foo">
+            <form>
+                <label for="cty">cty</label>
+                <select class="cty" name="city">
+                    <option value="tokyo">tokyo</option>
+                    <option value="osaka">osaka</option>
+                </select>
+                <br>
+                <label for="fname">check in date</label>
+                <input type="date" class="checkinDate" name="checkinDate">
+                <label for="lname">check out Date</label>
+                <input type="date" class="checkoutDate" name="checkoutDate">
+                <br> <label for="lname">number of rooms</label>
+                <input type="number" class="rooms" name="rooms" max="9" min="0">
+                <br>
+                <label for="lname">adult</label>
+                <input type="number" class="adult" name="adult" max="9" min="0">
+                <span class="invaliAdult">vui lòng chọn số người ít hơn 9</span>
+                <label for="lname">child</label>
+                <input type="number" class="child" name="child" max="9" min="0">
+                <br>
+                <button type="button" class="loadAgtMst">Search</button>
+                <input class="areaCode"/>
+            </form>
+        </div>
+        <script>
+            (function (window, $) {
+                var DetailAgsMstView = Backbone.View.extend({
+                    el: '#foo',
+                    events: {
+                        'click .loadAgtMst': 'loadAgtMst',
+                        'change .adult': 'invaliPeople',
+                        'change .child': 'invaliPeople',
+                        'change .rooms': 'invaliRooms',
+                    },
+                    initialize: function () {
+                        console.log('initialize');
+                    },
+                    loadAgtMst: function () {
+                        var areaCode = '';
+                        var subAreaCode = '';
+                        var cty = $('.cty').val();
+                        var checkinDate = $('.checkinDate').val();
+                        var checkoutDate = $('.checkoutDate').val();
+                        var rooms = $('.rooms').val();
+                        var adult = $('.adult').val();
+                        var child = $('.child').val();
+                        var today = new Date();
+                        var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+                        console.log(date)
+                        if (cty == "tokyo") {
+                            areaCode = 'A04';
+                            subAreaCode = '1301';
+                        } else if (cty == 'osaka') {
+                            areaCode = 'A08';
+                            subAreaCode = '2701';
+                        }
+                        if (dateCheck(checkinDate, checkoutDate, date))
+                            alert("Chuc mung ban");
+                        else
+                            alert("ban da sai roi");
+
+                    },
+                    invaliPeople: function () {
+                        var adult = $('.adult').val();
+                        var child = $('.child').val();
+                        console.log(adult);
+                        console.log(child);
+                        var people = Number(child) + Number(adult);
+                        if (people > 9) {
+                            alert("tổng số người phải nhỏ hơn 9");
+                            $('.adult').val('');
+                            $('.child').val('');
+                        }
+                        const max = 9 - Number(adult) - Number(child);
+                        console.log(max)
+                        $('.child').attr('max', max + child)
+                        $('.adult').attr('max', max + adult)
+                    },
+
+                    invaliRooms: function () {
+                        var rooms = $('.rooms').val();
+                        if (rooms > 9) {
+                            alert("Số phòng phải nhỏ hơn 9");
+                            $('.rooms').val('');
+                        }
+                    },
+                });
+                new DetailAgsMstView()
+                var AgsMstModel = Backbone.Model.extend(
+                    {
+                        initialize: function () {
+                            _.bindAll(this, 'loadAgtMstMode', '_getAgtMst');
+                            this.set('agtMei', '');
+                            this.set('telNo', '');
+                            this.set('mlAdr', '');
+                        },
+                        loadAgtMstMode: function () {
+                            var promise = this._getAgtMst();
+                            var that = this;
+                            promise.done(function (data) {
+                                that.set('agtMei', data.result.result.agtMei);
+                                that.set('telNo', data.result.result.telNo);
+                                that.set('mlAdr', data.result.result.mlAdr);
+                                that.trigger('change:agsMstModel');
+                            }).fail(function (data) {
+                            });
+                        },
+                        _getAgtMst: function () {
+                            var promise = $.ajax(skygate.util.getLocation('/agtMst'), {
+                                type: 'get',
+                                dataType: 'json',
+                                cache: false,
+                                data: $.param({})
+                            });
+                            return promise;
+                        },
+                    }
+                );
+            })(window, jQuery);
+
+            function dateCheck(checkinDate, checkoutDate, today) {
+
+                var checkinDates, checkoutDates, todays;
+                checkinDates = Date.parse(checkinDate);
+                checkoutDates = Date.parse(checkoutDate);
+                todays = Date.parse(today);
+                if ((todays < checkoutDates && todays > checkinDates)) {
+                    return true;
+                }
+                return false;
+            }
+
+
+        </script>
+    </div>
+{% endblock content %}

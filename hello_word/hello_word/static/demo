@@ -1,0 +1,111 @@
+--      userInfo.Jjina2
+{% extends "hotel_common/pc/_base.jinja2" %}
+{% block script %}
+    {% assets filters='closure_js', output='package_hotel_gen/pc/list/abc.js',
+        'lib/json2.js',
+        'lib/underscore.js',
+        'lib/jquery_pc.js',
+        'lib/jquery.ui.core.min.js',
+        'lib/jquery.cookie.js',
+        'lib/backbone.js',
+        'lib/Cocktail.min.js',
+        'lib/common.js',
+        'lib/integrate_member.js',
+        'model/hotel/agtMst/load_agtMst.js',
+        'view/hotel/pc/agtMst/detail_AgsMst.js' %}
+        <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+    {% endassets %}
+{% endblock %}
+{% block content %}
+    <div id="foo">
+        {% set result = result.result %}
+        <h4>Call API Example</h4> <br/>
+        <label>id： </label>
+        <i>{{ result.id }} </i>
+        <br>
+        <label>title： </label>
+        <i>{{ result.title }} </i>
+        <br>
+        <label>userID： </label>
+        <i>{{ result.userId }} </i>
+        <br>
+        <label>completed： </label>
+        <i>{{ result.completed }} </i>
+        <br>
+        <button type="button" class="loadAgtMst">load_agtMst</button>
+        <br>
+        <input class="agtMei"/>
+        <input class="telNo"/>
+        <input class="mlAdr"/>
+    </div>
+{% endblock %}
+
+
+--- view detail
+(function (window, $) {
+    var DetailAgsMstView = Backbone.View.extend({
+
+        el: '#foo',
+
+        events: {
+            'click .loadAgtMst': 'loadAgtMst',
+        },
+        initialize: function (options) {
+            _.bindAll(this);
+            console.log('initialize');
+            this.agsMstModel = new skygate.model.AgsMstModel();
+
+             // event handling
+            this.agsMstModel.on('change:agsMstModel', this._onChangeAgtMei);
+        },
+
+        loadAgtMst: function () {
+            this.agsMstModel.loadAgtMstMode()
+        },
+
+        _onChangeAgtMei: function () {
+            $('.agtMei').val(this.agsMstModel.get('agtMei'));
+            $('.telNo').val(this.agsMstModel.get('telNo'));
+            $('.mlAdr').val(this.agsMstModel.get('mlAdr'));
+        }
+    });
+    $(function () {
+        new DetailAgsMstView();
+    });
+})(window, jQuery);
+ -- model
+ (function (window, $) {
+    var AgsMstModel = Backbone.Model.extend(
+        {
+            initialize: function () {
+                _.bindAll(this, 'loadAgtMstMode', '_getAgtMst');
+                this.set('agtMei', '');
+                this.set('telNo', '');
+                this.set('mlAdr', '');
+            },
+            loadAgtMstMode: function () {
+                var promise = this._getAgtMst();
+                var that = this;
+                promise.done(function (data) {
+                    that.set('agtMei', data.result.result.agtMei);
+                    that.set('telNo', data.result.result.telNo);
+                    that.set('mlAdr', data.result.result.mlAdr);
+                    that.trigger('change:agsMstModel');
+                }).fail(function (data) {
+                });
+            },
+            _getAgtMst: function () {
+                var promise = $.ajax(skygate.util.getLocation('/agtMst'), {
+                    type: 'get',
+                    dataType: 'json',
+                    cache: false,
+                    data: $.param({})
+                });
+                return promise;
+            },
+        }
+    );
+    var ns = skygate.util.namespace('skygate.model');
+    ns.AgsMstModel = AgsMstModel;
+})(window, jQuery);
+
