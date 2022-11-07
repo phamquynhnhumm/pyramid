@@ -1,21 +1,21 @@
-;(function(window, $) {
+;(function (window, $) {
     var RoomModel = Backbone.Model.extend({
         defaults: {
-            roomMaxNum : 4,
-            rooms : [],
-            roomDefault : {
-                adult : 1,
-                childAges : []
+            roomMaxNum: 4,
+            rooms: [],
+            roomDefault: {
+                adult: 1,
+                childAges: []
             }
         },
 
-        initialize: function() {
+        initialize: function () {
             _.bindAll(this, 'increment', 'decrement', 'setRoomNum', 'getRooms');
         },
 
-        deserialize: function(roomsAsStr) {
-            return _.reduce(roomsAsStr.split(':'), function(memo, one) {
-                var adultAndChildren = _.map(one.split(','), function(v) {
+        deserialize: function (roomsAsStr) {
+            return _.reduce(roomsAsStr.split(':'), function (memo, one) {
+                var adultAndChildren = _.map(one.split(','), function (v) {
                     return parseInt(v, 10);
                 });
                 memo.push({
@@ -26,15 +26,15 @@
             }, []);
         },
 
-        deserializeAndUpdate: function(roomsAsStr) {
+        deserializeAndUpdate: function (roomsAsStr) {
             var rooms = this.deserialize(roomsAsStr);
             this.set('rooms', rooms);
             return rooms;
         },
 
-        formatStr: function(roomList) {
+        formatStr: function (roomList) {
             var rooms = [];
-            _.each(roomList, function(room){
+            _.each(roomList, function (room) {
                 var temp = room.adult;
                 if (room.childAges.length > 0) {
                     temp += ',' + room.childAges.join(',');
@@ -44,7 +44,7 @@
             return rooms.join(':');
         },
 
-        increment : function() {
+        increment: function () {
             var rooms = this.get('rooms');
             var roomNum = rooms.length;
             var roomMaxNum = this.get('roomMaxNum');
@@ -54,7 +54,7 @@
             }
         },
 
-        decrement : function() {
+        decrement: function () {
             var rooms = this.get('rooms');
             var roomNum = rooms.length;
             if (1 < roomNum) {
@@ -63,13 +63,13 @@
             }
         },
 
-        setRoomNum : function(roomNum) {
+        setRoomNum: function (roomNum) {
             var roomMaxNum = this.get('roomMaxNum');
             if (1 <= roomNum && roomNum <= roomMaxNum) {
                 var rooms = this.get('rooms');
                 if (rooms.length < roomNum) {
                     var roomDefault = this.get('roomDefault');
-                    _.each(_.range(rooms.length, roomNum), function() {
+                    _.each(_.range(rooms.length, roomNum), function () {
                         rooms.push($.extend(true, {}, roomDefault));
                     });
                 } else {
@@ -79,16 +79,16 @@
             }
         },
 
-        getRooms : function() {
+        getRooms: function () {
             return this.formatStr(this.get('rooms'));
         },
 
-        getRoomsAsObject: function() {
+        getRoomsAsObject: function () {
             var rooms = this.get('rooms');
-            _.each(rooms, function(room) {
+            _.each(rooms, function (room) {
                 room.adult = parseInt(room.adult, 10);
                 if (!_.isEmpty(room.childAges)) {
-                    _.each(room.childAges, function(ca, i) {
+                    _.each(room.childAges, function (ca, i) {
                         room.childAges[i] = parseInt(ca, 10);
                     });
                 }
@@ -96,7 +96,7 @@
             return rooms;
         },
 
-        setRooms : function(roomIndex, updateData) {
+        setRooms: function (roomIndex, updateData) {
             var rooms = this.get('rooms');
             rooms[roomIndex] = updateData;
         }
